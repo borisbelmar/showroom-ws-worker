@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test Client</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        .logs {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .connect { background-color: #28a745; color: white; }
+        .disconnect { background-color: #dc3545; color: white; }
+        .send { background-color: #007bff; color: white; }
+        .clear { background-color: #6c757d; color: white; }
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            flex: 1;
+            min-width: 200px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧩 WebSocket Test Client</h1>
+        
+        <div class="input-group">
+            <input type="text" id="wsUrl" placeholder="WebSocket URL" value="wss://showroom-ws-worker.borisbelmarm.workers.dev/">
+            <button id="connectBtn" class="connect">Conectar</button>
+            <button id="disconnectBtn" class="disconnect" disabled>Desconectar</button>
+        </div>
+
+        <div id="status" class="status disconnected">
+            ❌ Desconectado
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="cardInput" placeholder="Contenido de la carta">
+            <button id="sendCardBtn" class="send" disabled>Enviar Carta</button>
+        </div>
+
+        <div class="controls">
+            <button id="clearBtn" class="clear" disabled>Limpiar Pantalla</button>
+            <button id="clearLogsBtn" class="clear">Limpiar Logs</button>
+        </div>
+
+        <h3>📋 Logs</h3>
+        <div id="logs" class="logs"></div>
+
+        <h3>🎴 Última Carta Recibida</h3>
+        <div id="lastCard" style="background: #e9ecef; padding: 15px; border-radius: 4px; min-height: 50px;">
+            <em>No se ha recibido ninguna carta...</em>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        const logs = document.getElementById('logs');
+        const status = document.getElementById('status');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const sendCardBtn = document.getElementById('sendCardBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const wsUrlInput = document.getElementById('wsUrl');
+        const cardInput = document.getElementById('cardInput');
+        const lastCard = document.getElementById('lastCard');
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function updateStatus(connected) {
+            if (connected) {
+                status.className = 'status connected';
+                status.innerHTML = '✅ Conectado';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                sendCardBtn.disabled = false;
+                clearBtn.disabled = false;
+            } else {
+                status.className = 'status disconnected';
+                status.innerHTML = '❌ Desconectado';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                sendCardBtn.disabled = true;
+                clearBtn.disabled = true;
+            }
+        }
+
+        connectBtn.addEventListener('click', () => {
+            const url = wsUrlInput.value;
+            log(`🔄 Intentando conectar a: ${url}`);
+            
+            try {
+                ws = new WebSocket(url);
+                
+                ws.onopen = () => {
+                    log('🔌 Conexión WebSocket establecida');
+                    updateStatus(true);
+                };
+                
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        log(`📩 Mensaje recibido: ${JSON.stringify(data)}`);
+                        
+                        if (data.type === 'card') {
+                            lastCard.innerHTML = `<strong>🎴 Carta:</strong> ${JSON.stringify(data.card, null, 2)}`;
+                        } else if (data.type === 'clear') {
+                            lastCard.innerHTML = '<em>🧹 Pantalla limpiada...</em>';
+                        }
+                    } catch (err) {
+                        log(`❌ Error parsing message: ${event.data}`);
+                    }
+                };
+                
+                ws.onclose = () => {
+                    log('❎ Conexión WebSocket cerrada');
+                    updateStatus(false);
+                };
+                
+                ws.onerror = (error) => {
+                    log(`❌ Error WebSocket: ${error}`);
+                    updateStatus(false);
+                };
+                
+            } catch (error) {
+                log(`❌ Error al crear WebSocket: ${error.message}`);
+            }
+        });
+
+        disconnectBtn.addEventListener('click', () => {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        });
+
+        sendCardBtn.addEventListener('click', () => {
+            const cardContent = cardInput.value.trim();
+            if (!cardContent) {
+                alert('Por favor ingresa el contenido de la carta');
+                return;
+            }
+            
+            const message = {
+                type: 'card',
+                card: cardContent
+            };
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(message));
+                log(`📤 Enviado: ${JSON.stringify(message)}`);
+                cardInput.value = '';
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            const message = { type: 'clear' };
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(message));
+                log(`📤 Enviado: ${JSON.stringify(message)}`);
+            }
+        });
+
+        document.getElementById('clearLogsBtn').addEventListener('click', () => {
+            logs.innerHTML = '';
+        });
+
+        cardInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !sendCardBtn.disabled) {
+                sendCardBtn.click();
+            }
+        });
+
+        // Inicializar estado
+        updateStatus(false);
+        log('🚀 Cliente WebSocket inicializado');
+    </script>
+</body>
+</html>
