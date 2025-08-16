@@ -10,6 +10,13 @@
 	"observability": {
 		"enabled": true
 	},
+	"kv_namespaces": [
+		{
+			"binding": "SHOWROOM_KV",
+			"id": "preview_id",
+			"preview_id": "preview_id"
+		}
+	],
 	"durable_objects": {
 		"bindings": [
 			{
@@ -28,7 +35,14 @@
 	],
 	"env": {
 		"preview": {
-			"name": "showroom-ws-worker-preview"
+			"name": "showroom-ws-worker-preview",
+			"kv_namespaces": [
+				{
+					"binding": "SHOWROOM_KV",
+					"id": "preview_id",
+					"preview_id": "preview_id"
+				}
+			]
 		}
 	}
 }
