@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 
 type Bindings = {
   WEBSOCKET_ROOM: DurableObjectNamespace;
@@ -7,6 +8,13 @@ type Bindings = {
 
 // Aplicación Hono
 const app = new Hono<{ Bindings: Bindings }>();
+
+// Configurar CORS abierto para todos los endpoints
+app.use('*', cors({
+  origin: '*',
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+}));
 
 // TTL para datos en KV (1 día en segundos)
 const KV_TTL_SECONDS = 24 * 60 * 60; // 86400 segundos = 1 día
