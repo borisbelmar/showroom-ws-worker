@@ -1,0 +1,30 @@
+name = "showroom-ws-worker"
+main = "src/index.ts"
+compatibility_date = "2024-08-15"
+compatibility_flags = ["nodejs_compat"]
+
+# Account ID - Replace with your Cloudflare account ID
+account_id = "586c23d9b7328962547274b0bb179de6"
+
+# KV Namespaces
+[[kv_namespaces]]
+binding = "SHOWROOM_KV"
+id = "bb6d5086728c4976955c4b893fb3ea7b"
+preview_id = "59ae9c9f0c984179ac9961158492c5e0"
+
+# Durable Objects
+[[durable_objects.bindings]]
+name = "WEBSOCKET_ROOM"
+class_name = "WebSocketRoom"
+
+# Workers configuration
+[env.preview]
+name = "showroom-ws-worker-preview"
+
+[[env.preview.kv_namespaces]]
+binding = "SHOWROOM_KV"
+id = "59ae9c9f0c984179ac9961158492c5e0"
+
+[[env.preview.durable_objects.bindings]]
+name = "WEBSOCKET_ROOM"
+class_name = "WebSocketRoom"

@@ -13,8 +13,8 @@
 	"kv_namespaces": [
 		{
 			"binding": "SHOWROOM_KV",
-			"id": "preview_id",
-			"preview_id": "preview_id"
+			"id": "bb6d5086728c4976955c4b893fb3ea7b",
+			"preview_id": "59ae9c9f0c984179ac9961158492c5e0"
 		}
 	],
 	"durable_objects": {
@@ -39,8 +39,8 @@
 			"kv_namespaces": [
 				{
 					"binding": "SHOWROOM_KV",
-					"id": "preview_id",
-					"preview_id": "preview_id"
+					"id": "bb6d5086728c4976955c4b893fb3ea7b",
+					"preview_id": "59ae9c9f0c984179ac9961158492c5e0"
 				}
 			]
 		}

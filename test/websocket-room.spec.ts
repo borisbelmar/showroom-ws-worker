@@ -100,17 +100,24 @@ describe('WebSocketRoom Durable Object', () => {
 			expect(mockWebSocket.send).not.toHaveBeenCalled();
 		});
 
-		it('should have KV storage methods', async () => {
+		it('should have KV storage methods with token support', async () => {
 			// Test que los métodos de KV storage existen
 			expect(typeof (room as any).saveLastCard).toBe('function');
 			expect(typeof (room as any).clearLastCard).toBe('function');
 
-			// Test que usan el KV mock
+			// Establecer un token para las pruebas
+			(room as any).token = 'test-token';
+
+			// Test que usan el KV mock con clave basada en token
 			await (room as any).saveLastCard('🎭');
-			expect(mockEnv.SHOWROOM_KV.put).toHaveBeenCalled();
+			expect(mockEnv.SHOWROOM_KV.put).toHaveBeenCalledWith(
+				'last_card:test-token',
+				expect.stringContaining('🎭'),
+				{ expirationTtl: 86400 } // TTL de 1 día
+			);
 
 			await (room as any).clearLastCard();
-			expect(mockEnv.SHOWROOM_KV.delete).toHaveBeenCalled();
+			expect(mockEnv.SHOWROOM_KV.delete).toHaveBeenCalledWith('last_card:test-token');
 		});
 	});
 });

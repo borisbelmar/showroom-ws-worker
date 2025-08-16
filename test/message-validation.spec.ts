@@ -31,6 +31,50 @@ describe('Message Types and Validation', () => {
 		});
 	});
 
+	describe('Background message validation', () => {
+		it('should validate background message structure', () => {
+			const validBackgroundMessage = {
+				type: 'background',
+				backgroundColor: '#FF0000'
+			};
+
+			expect(validBackgroundMessage.type).toBe('background');
+			expect(validBackgroundMessage.backgroundColor).toBeDefined();
+			expect(typeof validBackgroundMessage.backgroundColor).toBe('string');
+		});
+
+		it('should handle valid hex color formats', () => {
+			const longFormat = {
+				type: 'background',
+				backgroundColor: '#FF0000'
+			};
+
+			const shortFormat = {
+				type: 'background',
+				backgroundColor: '#F00'
+			};
+
+			expect(longFormat.backgroundColor).toMatch(/^#[A-Fa-f0-9]{6}$/);
+			expect(shortFormat.backgroundColor).toMatch(/^#[A-Fa-f0-9]{3}$/);
+		});
+
+		it('should identify invalid hex color formats', () => {
+			const invalidFormats = [
+				'FF0000',    // Missing #
+				'#GG0000',   // Invalid characters
+				'#FF00',     // Invalid length
+				'#FF00000',  // Too long
+				'red',       // Color name
+				'rgb(255,0,0)' // RGB format
+			];
+
+			invalidFormats.forEach(color => {
+				const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+				expect(hexRegex.test(color)).toBe(false);
+			});
+		});
+	});
+
 	describe('Clear message validation', () => {
 		it('should validate clear message structure', () => {
 			const clearMessage = { type: 'clear' };

@@ -34,8 +34,17 @@ describe('Showroom WebSocket Worker', () => {
 	});
 
 	describe('WebSocket endpoint', () => {
-		it('requires websocket upgrade header (unit style)', async () => {
+		it('returns 404 for root path without token (unit style)', async () => {
 			const request = new IncomingRequest('http://example.com/');
+			const ctx = createExecutionContext();
+			const response = await worker.fetch(request, env, ctx);
+			await waitOnExecutionContext(ctx);
+			
+			expect(response.status).toBe(404);
+		});
+
+		it('requires websocket upgrade header with token (unit style)', async () => {
+			const request = new IncomingRequest('http://example.com/test-token');
 			const ctx = createExecutionContext();
 			const response = await worker.fetch(request, env, ctx);
 			await waitOnExecutionContext(ctx);
@@ -45,7 +54,7 @@ describe('Showroom WebSocket Worker', () => {
 		});
 
 		it('requires websocket upgrade header (integration style)', async () => {
-			const response = await SELF.fetch('https://example.com/');
+			const response = await SELF.fetch('https://example.com/test-token');
 			expect(response.status).toBe(426);
 			expect(await response.text()).toBe('Expected Upgrade: websocket');
 		});
@@ -70,18 +79,24 @@ describe('Showroom WebSocket Worker', () => {
 	});
 
 	describe('404 handling', () => {
-		it('returns 404 for unknown routes (unit style)', async () => {
-			const request = new IncomingRequest('http://example.com/unknown');
+		it('returns 426 for token routes without websocket upgrade (unit style)', async () => {
+			const request = new IncomingRequest('http://example.com/unknown-token');
 			const ctx = createExecutionContext();
 			const response = await worker.fetch(request, env, ctx);
 			await waitOnExecutionContext(ctx);
 			
-			expect(response.status).toBe(404);
+			// Con el nuevo sistema de tokens, cualquier ruta no reconocida será tratada como token
+			// y requerirá WebSocket upgrade, por lo que devuelve 426
+			expect(response.status).toBe(426);
+			expect(await response.text()).toBe('Expected Upgrade: websocket');
 		});
 
-		it('returns 404 for unknown routes (integration style)', async () => {
-			const response = await SELF.fetch('https://example.com/unknown');
-			expect(response.status).toBe(404);
+		it('returns 426 for token routes without websocket upgrade (integration style)', async () => {
+			const response = await SELF.fetch('https://example.com/unknown-token');
+			// Con el nuevo sistema de tokens, cualquier ruta no reconocida será tratada como token
+			// y requerirá WebSocket upgrade, por lo que devuelve 426
+			expect(response.status).toBe(426);
+			expect(await response.text()).toBe('Expected Upgrade: websocket');
 		});
 	});
 });
