@@ -133,19 +133,25 @@ Abre `test-client.html` en tu navegador para probar el WebSocket:
 3. Enviar comando clear
 4. Ver logs en tiempo real
 
-### Comandos de Desarrollo
+### 🧪 Testing
 
 ```bash
-# Ejecutar tests
+# Ejecutar todos los tests
 npm test
 
-# Regenerar tipos TypeScript
-npm run cf-typegen
+# Ejecutar tests una vez (modo CI)
+npm run test:run
 
-# Linting y formato (si están configurados)
-npm run lint
-npm run format
+# Ver documentación de tests
+cat test/README.md
 ```
+
+**Cobertura actual**: 18 tests pasando en 3 archivos
+- ✅ Tests de endpoints HTTP (health, WebSocket, 404)
+- ✅ Tests de Durable Objects (conexiones, broadcasting)
+- ✅ Tests de validación de mensajes (card, clear, JSON)
+
+📖 **Documentación completa**: [Test Documentation](test/README.md)
 
 ## 🚀 Despliegue
 
